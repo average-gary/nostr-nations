@@ -1,0 +1,15 @@
+[package]
+name = "nostr-nations-core"
+description = "Core game logic library for Nostr Nations - a Civilization-style 4X strategy game"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+rand.workspace = true

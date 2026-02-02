@@ -1,0 +1,42 @@
+# Build outputs
+dist/
+build/
+target/
+
+# Dependencies
+node_modules/
+
+# Cache directories
+.cache/
+.turbo/
+.vite/
+
+# Tauri generated files
+src-tauri/target/
+src-tauri/gen/
+
+# Lock files
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+Cargo.lock
+
+# IDE and editor directories
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Environment files
+.env*
+
+# Generated types
+*.d.ts
+!src/**/*.d.ts
+
+# Other
+.DS_Store
+coverage/

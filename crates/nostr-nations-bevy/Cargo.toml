@@ -1,0 +1,12 @@
+[package]
+name = "nostr-nations-bevy"
+description = "Bevy ECS integration for Nostr Nations"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+nostr-nations-core = { path = "../nostr-nations-core" }
+serde.workspace = true
+bevy.workspace = true

@@ -1,0 +1,19 @@
+[package]
+name = "nostr-nations-network"
+description = "Networking layer for Nostr Nations - Iroh P2P + Nostr relay"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+nostr-nations-core = { path = "../nostr-nations-core" }
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+rusqlite = { version = "0.31", features = ["bundled"] }
+# nostr-sdk.workspace = true  # Enable when implementing Nostr integration
+# iroh.workspace = true       # Enable when implementing full P2P
+
+[dev-dependencies]
+tempfile = "3.10"

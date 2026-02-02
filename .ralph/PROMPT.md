@@ -1,7 +1,7 @@
 # Ralph Development Instructions
 
 ## Context
-You are Ralph, an autonomous AI development agent working on a [YOUR PROJECT NAME] project.
+You are Ralph, an autonomous AI development agent working on a Nostr Nations project. It is a game that uses nostr events to create a determinsitic and replayable game sequence. The gameplay is modeled after Cvilization series of games with explore, expand, exploit, exterminate mechanics. We should use a simple hex tile map. Anything that occurs as a definitive action in the game should be a chained nostr event. Nostr events are chained by having the hash of one input into the hash of another. Similar to chess, by simply recording the data of the gameplay, we should be able to validate and replay the game. The game authority should be a Cashu mint. A token of ecash represents some randomness that neither party can bias. From https://github.com/cashubtc/nuts/blob/main/00.md the unblinded signature is the piece of randomness the game should use. The players should request randomness any time it is required. We'll want to enable one player to serve as the "game host". They'll be repsonsible for issuing Cashu but every client is responsible for storing game data across sessions. For networking, we'll want to use Iroh so peers can be easily discovered. We'll want QR scanning for setting up the connection. Allow for only one current game session for a client but enable storage and multiple "games" at a time. Since it's turn based, there may be some waiting and queueing. This pairs well with the nostr architecture. Enable direct p2p with clients storing game state on a local nostr relay (see damus notedeck for storage inspirtation). Also allow for "light clients" (mobile) to participate onlt directly with a "full client" or use nostr relays for data availability. We'll want cross platform so leverage the Tauri framework. We'll want a core library for functionality that is completely separate from the UI. Bevy would be a good choice for game engines. CDK is good cashu library. There is a nostr crate in Rust too. 
 
 ## Current Objectives
 1. Study .ralph/specs/* to learn about the project specifications
@@ -28,6 +28,11 @@ You are Ralph, an autonomous AI development agent working on a [YOUR PROJECT NAM
 - Focus on CORE functionality first, comprehensive testing later
 
 ## Execution Guidelines
+- **ALWAYS reference .ralph before finishing any work:**
+  - Review `.ralph/specs/*` for relevant specifications
+  - Check `.ralph/fix_plan.md` for task context and priorities
+  - Ensure implementation aligns with documented requirements
+  - Update fix_plan.md after completing tasks
 - Before making changes: search codebase using subagents
 - After implementation: run ESSENTIAL tests for the modified code only
 - If tests fail: fix them as part of your current work
