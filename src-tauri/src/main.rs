@@ -22,6 +22,7 @@ fn main() {
             commands::game::join_game,
             commands::game::start_game,
             commands::game::get_game_state,
+            commands::game::end_game,
             commands::game::end_turn,
             commands::actions::move_unit,
             commands::actions::attack_unit,
@@ -32,6 +33,10 @@ fn main() {
             commands::network::disconnect_peer,
             commands::network::get_connection_ticket,
             commands::network::scan_qr_code,
+            commands::saves::list_saved_games,
+            commands::saves::load_game,
+            commands::saves::save_game,
+            commands::saves::delete_saved_game,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

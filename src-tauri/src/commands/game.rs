@@ -3,11 +3,11 @@
 //! These commands handle game lifecycle: creation, joining, starting, and state queries.
 
 use crate::events::{
-    emit_game_state_updated, emit_notification, emit_turn_event,
-    GameStateUpdatedPayload, NotificationPayload, TurnEventPayload,
+    emit_game_state_updated, emit_notification, emit_turn_event, GameStateUpdatedPayload,
+    NotificationPayload, TurnEventPayload,
 };
 use crate::state::{AppError, AppState};
-use nostr_nations_core::{GameAction, GamePhase, GameSettings, GameSpeed, Difficulty, MapSize};
+use nostr_nations_core::{Difficulty, GameAction, GamePhase, GameSettings, GameSpeed, MapSize};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::{AppHandle, State};
@@ -42,7 +42,9 @@ pub fn create_game(
     options: CreateGameOptions,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<GameStateResponse, AppError> {
-    let mut state = state.lock().map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
+    let mut state = state
+        .lock()
+        .map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
 
     if state.has_active_game() {
         return Err(AppError::GameAlreadyActive);
@@ -104,13 +106,15 @@ pub fn create_game(
 
     // Join as first player
     let engine = state.get_engine_mut()?;
-    engine.apply_action(
-        0,
-        &GameAction::JoinGame {
-            player_name: options.player_name,
-            civilization_id: options.civilization,
-        },
-    ).map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
+    engine
+        .apply_action(
+            0,
+            &GameAction::JoinGame {
+                player_name: options.player_name,
+                civilization_id: options.civilization,
+            },
+        )
+        .map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
 
     // Return game state
     let game = state.get_game_state()?;
@@ -132,18 +136,22 @@ pub fn join_game(
     civilization: String,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<GameStateResponse, AppError> {
-    let mut state = state.lock().map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
+    let mut state = state
+        .lock()
+        .map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
 
     let engine = state.get_engine_mut()?;
     let player_id = engine.state.players.len() as u8;
 
-    engine.apply_action(
-        player_id,
-        &GameAction::JoinGame {
-            player_name,
-            civilization_id: civilization,
-        },
-    ).map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
+    engine
+        .apply_action(
+            player_id,
+            &GameAction::JoinGame {
+                player_name,
+                civilization_id: civilization,
+            },
+        )
+        .map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
 
     let game = &engine.state;
     Ok(GameStateResponse {
@@ -163,21 +171,27 @@ pub fn start_game(
     app_handle: AppHandle,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<GameStateResponse, AppError> {
-    let mut state = state.lock().map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
+    let mut state = state
+        .lock()
+        .map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
 
     let engine = state.get_engine_mut()?;
 
     if engine.state.phase != GamePhase::Setup {
-        return Err(AppError::InvalidState("Game is not in setup phase".to_string()));
+        return Err(AppError::InvalidState(
+            "Game is not in setup phase".to_string(),
+        ));
     }
 
-    engine.apply_action(0, &GameAction::StartGame)
+    engine
+        .apply_action(0, &GameAction::StartGame)
         .map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
 
     let game = &engine.state;
 
     // Get first player name
-    let first_player_name = game.players
+    let first_player_name = game
+        .players
         .first()
         .map(|p| p.name.clone())
         .unwrap_or_else(|| "Player 0".to_string());
@@ -215,7 +229,10 @@ pub fn start_game(
         &app_handle,
         NotificationPayload::success(
             "Game Started",
-            format!("The game has begun! {} players competing.", game.players.len()),
+            format!(
+                "The game has begun! {} players competing.",
+                game.players.len()
+            ),
         ),
     );
 
@@ -232,10 +249,10 @@ pub fn start_game(
 
 /// Get the current game state.
 #[tauri::command]
-pub fn get_game_state(
-    state: State<'_, Mutex<AppState>>,
-) -> Result<GameStateResponse, AppError> {
-    let state = state.lock().map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
+pub fn get_game_state(state: State<'_, Mutex<AppState>>) -> Result<GameStateResponse, AppError> {
+    let state = state
+        .lock()
+        .map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
 
     let game = state.get_game_state()?;
     Ok(GameStateResponse {
@@ -249,25 +266,40 @@ pub fn get_game_state(
     })
 }
 
+/// End the current game and return to menu.
+#[tauri::command]
+pub fn end_game(state: State<'_, Mutex<AppState>>) -> Result<(), AppError> {
+    let mut state = state
+        .lock()
+        .map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
+    state.end_game();
+    Ok(())
+}
+
 /// End the current player's turn.
 #[tauri::command]
 pub fn end_turn(
     app_handle: AppHandle,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<GameStateResponse, AppError> {
-    let mut state = state.lock().map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
+    let mut state = state
+        .lock()
+        .map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
 
     let engine = state.get_engine_mut()?;
     let previous_player = engine.state.current_player;
     let previous_turn = engine.state.turn;
 
     // Get player name before applying action
-    let previous_player_name = engine.state.players
+    let previous_player_name = engine
+        .state
+        .players
         .get(previous_player as usize)
         .map(|p| p.name.clone())
         .unwrap_or_else(|| format!("Player {}", previous_player));
 
-    engine.apply_action(previous_player, &GameAction::EndTurn)
+    engine
+        .apply_action(previous_player, &GameAction::EndTurn)
         .map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
 
     let game = &engine.state;
@@ -275,7 +307,8 @@ pub fn end_turn(
     let new_turn = game.turn;
 
     // Get new player name
-    let new_player_name = game.players
+    let new_player_name = game
+        .players
         .get(new_player as usize)
         .map(|p| p.name.clone())
         .unwrap_or_else(|| format!("Player {}", new_player));

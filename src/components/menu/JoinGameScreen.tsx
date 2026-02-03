@@ -11,7 +11,7 @@ interface TicketInfo {
 
 interface JoinGameScreenProps {
   onBack: () => void
-  onConnected: () => void
+  onConnected: (gameId: string) => void
 }
 
 type TabMode = 'scan' | 'manual'
@@ -33,6 +33,10 @@ const JoinGameScreen: React.FC<JoinGameScreenProps> = ({
   const [isScanning, setIsScanning] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Player info state
+  const [playerName, setPlayerName] = useState('')
+  const [selectedCiv, setSelectedCiv] = useState('generic')
 
   // Handle QR code scan (placeholder for real camera API)
   const handleQrScan = useCallback(
@@ -100,7 +104,7 @@ const JoinGameScreen: React.FC<JoinGameScreenProps> = ({
     }
   }
 
-  // Handle peer connection
+  // Handle peer connection and game join
   const handleConnect = async () => {
     if (!ticketInfo) return
 
@@ -111,13 +115,20 @@ const JoinGameScreen: React.FC<JoinGameScreenProps> = ({
       const ticket = ticketInput.trim()
 
       if (isTauri) {
+        // First connect to the peer
         await invoke('connect_peer', { ticket })
-        onConnected()
+
+        // Then join the game with player info
+        const result = await invoke<{ game_id: string }>('join_game', {
+          playerName: playerName || 'Player',
+          civilization: selectedCiv,
+        })
+        onConnected(result.game_id)
       } else {
         // Mock for development without Tauri
         console.log('Connecting to peer with ticket:', ticket)
         await new Promise((resolve) => setTimeout(resolve, 1000))
-        onConnected()
+        onConnected('mock-game-id')
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err)
@@ -309,6 +320,18 @@ const JoinGameScreen: React.FC<JoinGameScreenProps> = ({
     </div>
   )
 
+  // Available civilizations
+  const civilizations = [
+    { id: 'generic', name: 'Generic Nation' },
+    { id: 'rome', name: 'Rome' },
+    { id: 'greece', name: 'Greece' },
+    { id: 'egypt', name: 'Egypt' },
+    { id: 'persia', name: 'Persia' },
+    { id: 'china', name: 'China' },
+    { id: 'japan', name: 'Japan' },
+    { id: 'india', name: 'India' },
+  ]
+
   const renderTicketInfo = () => {
     if (!ticketInfo) return null
 
@@ -350,6 +373,51 @@ const JoinGameScreen: React.FC<JoinGameScreenProps> = ({
             >
               {formatExpiration(ticketInfo.expires_at)}
             </span>
+          </div>
+        </div>
+
+        {/* Player Configuration */}
+        <div className="mt-6 border-t border-primary-700 pt-6">
+          <h4 className="text-md mb-4 font-header text-foreground">
+            Player Settings
+          </h4>
+
+          <div className="space-y-4">
+            <div>
+              <label className="mb-2 block text-sm text-foreground-muted">
+                Player Name
+              </label>
+              <input
+                type="text"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                placeholder="Enter your name..."
+                className="w-full rounded-lg border-2 border-primary-700 bg-background
+                           px-4 py-2 text-foreground placeholder-foreground-dim
+                           transition-colors focus:border-secondary focus:outline-none"
+                disabled={isConnecting}
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm text-foreground-muted">
+                Civilization
+              </label>
+              <select
+                value={selectedCiv}
+                onChange={(e) => setSelectedCiv(e.target.value)}
+                className="w-full rounded-lg border-2 border-primary-700 bg-background
+                           px-4 py-2 text-foreground
+                           transition-colors focus:border-secondary focus:outline-none"
+                disabled={isConnecting}
+              >
+                {civilizations.map((civ) => (
+                  <option key={civ.id} value={civ.id}>
+                    {civ.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 

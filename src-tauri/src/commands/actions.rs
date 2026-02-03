@@ -3,9 +3,9 @@
 //! These commands handle in-game actions like moving units, attacking, and building.
 
 use crate::events::{
-    emit_combat_resolved, emit_game_state_updated, emit_notification,
-    CombatResolvedPayload, CombatResults, CombatantInfo, GameStateUpdatedPayload,
-    NotificationPayload, NotificationType, UnitUpdate,
+    emit_combat_resolved, emit_game_state_updated, emit_notification, CombatResolvedPayload,
+    CombatResults, CombatantInfo, GameStateUpdatedPayload, NotificationPayload, NotificationType,
+    UnitUpdate,
 };
 use crate::state::{AppError, AppState};
 use nostr_nations_core::{GameAction, HexCoord, Improvement};
@@ -29,21 +29,25 @@ pub fn move_unit(
     path: Vec<(i32, i32)>,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<ActionResult, AppError> {
-    let mut state = state.lock().map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
+    let mut state = state
+        .lock()
+        .map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
 
     let engine = state.get_engine_mut()?;
     let current_player = engine.state.current_player;
 
     // Convert path to HexCoords
-    let hex_path: Vec<HexCoord> = path
-        .into_iter()
-        .map(|(q, r)| HexCoord::new(q, r))
-        .collect();
+    let hex_path: Vec<HexCoord> = path.into_iter().map(|(q, r)| HexCoord::new(q, r)).collect();
 
-    let result = engine.apply_action(
-        current_player,
-        &GameAction::MoveUnit { unit_id, path: hex_path },
-    ).map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
+    let result = engine
+        .apply_action(
+            current_player,
+            &GameAction::MoveUnit {
+                unit_id,
+                path: hex_path,
+            },
+        )
+        .map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
 
     Ok(ActionResult {
         success: result.success,
@@ -61,14 +65,18 @@ pub fn attack_unit(
     random: f32,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<ActionResult, AppError> {
-    let mut state = state.lock().map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
+    let mut state = state
+        .lock()
+        .map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
 
     let engine = state.get_engine_mut()?;
     let current_player = engine.state.current_player;
 
     // Capture unit info before combat for event emission
     let attacker_info_before = engine.state.units.get(&attacker_id).map(|u| {
-        let owner_name = engine.state.players
+        let owner_name = engine
+            .state
+            .players
             .get(u.owner as usize)
             .map(|p| p.name.clone())
             .unwrap_or_else(|| format!("Player {}", u.owner));
@@ -83,7 +91,9 @@ pub fn attack_unit(
     });
 
     let defender_info_before = engine.state.units.get(&defender_id).map(|u| {
-        let owner_name = engine.state.players
+        let owner_name = engine
+            .state
+            .players
             .get(u.owner as usize)
             .map(|p| p.name.clone())
             .unwrap_or_else(|| format!("Player {}", u.owner));
@@ -97,22 +107,30 @@ pub fn attack_unit(
         )
     });
 
-    let result = engine.apply_action(
-        current_player,
-        &GameAction::AttackUnit {
-            attacker_id,
-            defender_id,
-            random,
-        },
-    ).map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
+    let result = engine
+        .apply_action(
+            current_player,
+            &GameAction::AttackUnit {
+                attacker_id,
+                defender_id,
+                random,
+            },
+        )
+        .map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
 
     // Emit combat event if we have the unit info
     if let (Some(atk_before), Some(def_before)) = (attacker_info_before, defender_info_before) {
         // Get unit info after combat
-        let attacker_health_after = engine.state.units.get(&attacker_id)
+        let attacker_health_after = engine
+            .state
+            .units
+            .get(&attacker_id)
             .map(|u| u.health)
             .unwrap_or(0);
-        let defender_health_after = engine.state.units.get(&defender_id)
+        let defender_health_after = engine
+            .state
+            .units
+            .get(&defender_id)
             .map(|u| u.health)
             .unwrap_or(0);
 
@@ -276,15 +294,16 @@ pub fn found_city(
     name: String,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<ActionResult, AppError> {
-    let mut state = state.lock().map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
+    let mut state = state
+        .lock()
+        .map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
 
     let engine = state.get_engine_mut()?;
     let current_player = engine.state.current_player;
 
-    let result = engine.apply_action(
-        current_player,
-        &GameAction::FoundCity { settler_id, name },
-    ).map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
+    let result = engine
+        .apply_action(current_player, &GameAction::FoundCity { settler_id, name })
+        .map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
 
     Ok(ActionResult {
         success: result.success,
@@ -300,7 +319,9 @@ pub fn build_improvement(
     improvement: String,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<ActionResult, AppError> {
-    let mut state = state.lock().map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
+    let mut state = state
+        .lock()
+        .map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
 
     let engine = state.get_engine_mut()?;
     let current_player = engine.state.current_player;
@@ -315,16 +336,23 @@ pub fn build_improvement(
         "lumber_mill" => Improvement::LumberMill,
         "trading_post" => Improvement::TradingPost,
         "fort" => Improvement::Fort,
-        _ => return Err(AppError::InvalidState(format!("Unknown improvement: {}", improvement))),
+        _ => {
+            return Err(AppError::InvalidState(format!(
+                "Unknown improvement: {}",
+                improvement
+            )))
+        }
     };
 
-    let result = engine.apply_action(
-        current_player,
-        &GameAction::BuildImprovement {
-            unit_id,
-            improvement: improvement_type,
-        },
-    ).map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
+    let result = engine
+        .apply_action(
+            current_player,
+            &GameAction::BuildImprovement {
+                unit_id,
+                improvement: improvement_type,
+            },
+        )
+        .map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
 
     Ok(ActionResult {
         success: result.success,
@@ -339,15 +367,16 @@ pub fn set_research(
     tech_id: String,
     state: State<'_, Mutex<AppState>>,
 ) -> Result<ActionResult, AppError> {
-    let mut state = state.lock().map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
+    let mut state = state
+        .lock()
+        .map_err(|_| AppError::InvalidState("Lock poisoned".to_string()))?;
 
     let engine = state.get_engine_mut()?;
     let current_player = engine.state.current_player;
 
-    let result = engine.apply_action(
-        current_player,
-        &GameAction::SetResearch { tech_id },
-    ).map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
+    let result = engine
+        .apply_action(current_player, &GameAction::SetResearch { tech_id })
+        .map_err(|e| AppError::InvalidState(format!("{:?}", e)))?;
 
     Ok(ActionResult {
         success: result.success,

@@ -1,64 +1,66 @@
-import React from 'react';
+import React from 'react'
 import {
   useGameStore,
   selectSelectedUnit,
   selectSelectedCity,
   selectSelectedTile,
-} from '@/stores/gameStore';
-import type { Unit, City, HexTile } from '@/types/game';
+} from '@/stores/gameStore'
+import type { Unit, City, HexTile } from '@/types/game'
 
 const SelectionPanel: React.FC = () => {
-  const selection = useGameStore((state) => state.selection);
-  const selectedUnit = useGameStore(selectSelectedUnit);
-  const selectedCity = useGameStore(selectSelectedCity);
-  const selectedTile = useGameStore(selectSelectedTile);
+  const selection = useGameStore((state) => state.selection)
+  const selectedUnit = useGameStore(selectSelectedUnit)
+  const selectedCity = useGameStore(selectSelectedCity)
+  const selectedTile = useGameStore(selectSelectedTile)
 
   if (selection.type === 'none') {
-    return null;
+    return null
   }
 
   return (
-    <div className="w-64 panel animate-fade-in">
+    <div className="panel w-64 animate-fade-in">
       {selection.type === 'unit' && selectedUnit && (
         <UnitPanel unit={selectedUnit} />
       )}
       {selection.type === 'city' && selectedCity && (
         <CityPanel city={selectedCity} />
       )}
-      {selection.type === 'tile' && selectedTile && !selectedUnit && !selectedCity && (
-        <TilePanel tile={selectedTile} />
-      )}
+      {selection.type === 'tile' &&
+        selectedTile &&
+        !selectedUnit &&
+        !selectedCity && <TilePanel tile={selectedTile} />}
     </div>
-  );
-};
+  )
+}
 
 interface UnitPanelProps {
-  unit: Unit;
+  unit: Unit
 }
 
 const UnitPanel: React.FC<UnitPanelProps> = ({ unit }) => {
-  const moveUnit = useGameStore((state) => state.moveUnit);
-  const foundCity = useGameStore((state) => state.foundCity);
+  const foundCity = useGameStore((state) => state.foundCity)
 
-  const healthPercent = (unit.health / unit.maxHealth) * 100;
+  const healthPercent = (unit.health / unit.maxHealth) * 100
   const healthColor =
-    healthPercent > 66 ? 'bg-success' : healthPercent > 33 ? 'bg-warning' : 'bg-danger';
+    healthPercent > 66
+      ? 'bg-success'
+      : healthPercent > 33
+        ? 'bg-warning'
+        : 'bg-danger'
 
   return (
     <>
-      <div className="panel-header uppercase tracking-wider">
-        {unit.type}
-      </div>
+      <div className="panel-header uppercase tracking-wider">{unit.type}</div>
       <div className="panel-content space-y-3">
         {/* Health bar */}
         <div>
-          <div className="flex justify-between text-sm mb-1">
+          <div className="mb-1 flex justify-between text-sm">
             <span className="text-foreground-muted">HP</span>
             <span className="font-mono">
               {unit.health}/{unit.maxHealth}
             </span>
           </div>
-          <div className="h-2 bg-background rounded overflow-hidden">
+          <div className="h-2 overflow-hidden rounded bg-background">
             <div
               className={`h-full ${healthColor} transition-all duration-300`}
               style={{ width: `${healthPercent}%` }}
@@ -68,7 +70,10 @@ const UnitPanel: React.FC<UnitPanelProps> = ({ unit }) => {
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-2 text-sm">
-          <StatItem label="Movement" value={`${unit.movement}/${unit.maxMovement}`} />
+          <StatItem
+            label="Movement"
+            value={`${unit.movement}/${unit.maxMovement}`}
+          />
           <StatItem label="Strength" value={unit.strength.toString()} />
         </div>
 
@@ -76,7 +81,7 @@ const UnitPanel: React.FC<UnitPanelProps> = ({ unit }) => {
         {unit.promotions.length > 0 && (
           <div>
             <span className="text-sm text-foreground-muted">Promotions:</span>
-            <ul className="text-sm ml-2">
+            <ul className="ml-2 text-sm">
               {unit.promotions.map((promo) => (
                 <li key={promo} className="text-foreground-dim">
                   {promo}
@@ -87,28 +92,31 @@ const UnitPanel: React.FC<UnitPanelProps> = ({ unit }) => {
         )}
 
         {/* Actions */}
-        <div className="flex flex-wrap gap-2 pt-2 border-t border-primary-700">
+        <div className="flex flex-wrap gap-2 border-t border-primary-700 pt-2">
           {unit.type === 'settler' && (
             <ActionButton onClick={() => foundCity(unit.id)}>
               Found City
             </ActionButton>
           )}
-          <ActionButton onClick={() => console.log('Fortify')}>Fortify</ActionButton>
+          <ActionButton onClick={() => console.log('Fortify')}>
+            Fortify
+          </ActionButton>
           <ActionButton onClick={() => console.log('Skip')}>Skip</ActionButton>
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
 interface CityPanelProps {
-  city: City;
+  city: City
 }
 
 const CityPanel: React.FC<CityPanelProps> = ({ city }) => {
-  const productionPercent = city.production.total > 0
-    ? (city.production.progress / city.production.total) * 100
-    : 0;
+  const productionPercent =
+    city.production.total > 0
+      ? (city.production.progress / city.production.total) * 100
+      : 0
 
   return (
     <>
@@ -121,7 +129,7 @@ const CityPanel: React.FC<CityPanelProps> = ({ city }) => {
       <div className="panel-content space-y-3">
         {/* Population */}
         <div className="text-center">
-          <span className="text-3xl font-header text-secondary">
+          <span className="font-header text-3xl text-secondary">
             {city.population}
           </span>
           <p className="text-sm text-foreground-muted">Population</p>
@@ -129,19 +137,19 @@ const CityPanel: React.FC<CityPanelProps> = ({ city }) => {
 
         {/* Production */}
         <div>
-          <div className="flex justify-between text-sm mb-1">
+          <div className="mb-1 flex justify-between text-sm">
             <span className="text-foreground-muted">Producing</span>
             <span>{city.production.item ?? 'Nothing'}</span>
           </div>
           {city.production.item && (
             <>
-              <div className="h-2 bg-background rounded overflow-hidden">
+              <div className="h-2 overflow-hidden rounded bg-background">
                 <div
                   className="h-full bg-secondary transition-all duration-300"
                   style={{ width: `${productionPercent}%` }}
                 />
               </div>
-              <p className="text-xs text-foreground-dim text-right mt-1">
+              <p className="mt-1 text-right text-xs text-foreground-dim">
                 {city.production.turnsRemaining} turns
               </p>
             </>
@@ -151,13 +159,16 @@ const CityPanel: React.FC<CityPanelProps> = ({ city }) => {
         {/* Yields */}
         <div className="grid grid-cols-2 gap-2 text-sm">
           <StatItem label="Food" value={city.yields.food.toString()} />
-          <StatItem label="Production" value={city.yields.production.toString()} />
+          <StatItem
+            label="Production"
+            value={city.yields.production.toString()}
+          />
           <StatItem label="Gold" value={city.yields.gold.toString()} />
           <StatItem label="Science" value={city.yields.science.toString()} />
         </div>
 
         {/* Actions */}
-        <div className="flex flex-wrap gap-2 pt-2 border-t border-primary-700">
+        <div className="flex flex-wrap gap-2 border-t border-primary-700 pt-2">
           <ActionButton onClick={() => console.log('Change Production')}>
             Production
           </ActionButton>
@@ -167,11 +178,11 @@ const CityPanel: React.FC<CityPanelProps> = ({ city }) => {
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
 interface TilePanelProps {
-  tile: HexTile;
+  tile: HexTile
 }
 
 const TilePanel: React.FC<TilePanelProps> = ({ tile }) => {
@@ -180,7 +191,7 @@ const TilePanel: React.FC<TilePanelProps> = ({ tile }) => {
       <div className="panel-header uppercase tracking-wider">
         {tile.terrain}
         {tile.features.length > 0 && (
-          <span className="text-foreground-dim ml-1">
+          <span className="ml-1 text-foreground-dim">
             ({tile.features.join(', ')})
           </span>
         )}
@@ -217,12 +228,12 @@ const TilePanel: React.FC<TilePanelProps> = ({ tile }) => {
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
 interface StatItemProps {
-  label: string;
-  value: string;
+  label: string
+  value: string
 }
 
 const StatItem: React.FC<StatItemProps> = ({ label, value }) => (
@@ -230,20 +241,20 @@ const StatItem: React.FC<StatItemProps> = ({ label, value }) => (
     <span className="text-foreground-muted">{label}</span>
     <span className="font-mono">{value}</span>
   </div>
-);
+)
 
 interface ActionButtonProps {
-  children: React.ReactNode;
-  onClick: () => void;
+  children: React.ReactNode
+  onClick: () => void
 }
 
 const ActionButton: React.FC<ActionButtonProps> = ({ children, onClick }) => (
   <button
     onClick={onClick}
-    className="px-3 py-1 text-sm bg-primary hover:bg-primary-600 rounded transition-colors duration-200"
+    className="rounded bg-primary px-3 py-1 text-sm transition-colors duration-200 hover:bg-primary-600"
   >
     {children}
   </button>
-);
+)
 
-export default SelectionPanel;
+export default SelectionPanel

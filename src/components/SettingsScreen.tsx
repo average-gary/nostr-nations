@@ -1,20 +1,19 @@
-import React, { useCallback } from 'react';
+import React, { useCallback } from 'react'
 import {
   useSettingsStore,
-  DEFAULT_SETTINGS,
   selectAudioSettings,
   selectDisplaySettings,
   selectGamePreferences,
-} from '@/stores/settingsStore';
+} from '@/stores/settingsStore'
 
 interface SettingsScreenProps {
-  onBack: () => void;
+  onBack: () => void
 }
 
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
-  const audio = useSettingsStore(selectAudioSettings);
-  const display = useSettingsStore(selectDisplaySettings);
-  const game = useSettingsStore(selectGamePreferences);
+  const audio = useSettingsStore(selectAudioSettings)
+  const display = useSettingsStore(selectDisplaySettings)
+  const game = useSettingsStore(selectGamePreferences)
 
   const {
     setMasterVolume,
@@ -28,21 +27,21 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
     setAutoSaveInterval,
     setTurnTimer,
     resetToDefaults,
-  } = useSettingsStore();
+  } = useSettingsStore()
 
   const handleResetToDefaults = useCallback(() => {
-    resetToDefaults();
-  }, [resetToDefaults]);
+    resetToDefaults()
+  }, [resetToDefaults])
 
   return (
-    <div className="h-full w-full flex flex-col items-center justify-center bg-gradient-game">
+    <div className="bg-gradient-game flex h-full w-full flex-col items-center justify-center">
       {/* Title */}
-      <h1 className="text-5xl font-header text-secondary text-glow mb-10 animate-fade-in">
+      <h1 className="text-glow mb-10 animate-fade-in font-header text-5xl text-secondary">
         Settings
       </h1>
 
       {/* Settings Container */}
-      <div className="w-full max-w-2xl px-8 animate-slide-up">
+      <div className="w-full max-w-2xl animate-slide-up px-8">
         <div className="panel max-h-[60vh] overflow-y-auto">
           {/* Audio Settings */}
           <SettingsSection title="Audio">
@@ -105,26 +104,25 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
                 { value: '5', label: 'Every 5 Turns' },
                 { value: '10', label: 'Every 10 Turns' },
               ]}
-              onChange={(value) => setAutoSaveInterval(parseInt(value, 10) as 0 | 1 | 5 | 10)}
+              onChange={(value) =>
+                setAutoSaveInterval(parseInt(value, 10) as 0 | 1 | 5 | 10)
+              }
             />
-            <TurnTimerSetting
-              value={game.turnTimer}
-              onChange={setTurnTimer}
-            />
+            <TurnTimerSetting value={game.turnTimer} onChange={setTurnTimer} />
           </SettingsSection>
         </div>
 
         {/* Buttons */}
-        <div className="flex justify-between mt-6">
+        <div className="mt-6 flex justify-between">
           <button
             onClick={handleResetToDefaults}
-            className="px-6 py-3 text-lg font-header rounded-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-danger bg-danger/20 hover:bg-danger/30 border-2 border-danger text-danger"
+            className="rounded-lg border-2 border-danger bg-danger/20 px-6 py-3 font-header text-lg text-danger transition-all duration-200 hover:scale-105 hover:bg-danger/30 focus:outline-none focus:ring-2 focus:ring-danger"
           >
             Reset to Defaults
           </button>
           <button
             onClick={onBack}
-            className="px-6 py-3 text-lg font-header rounded-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-secondary bg-primary hover:bg-primary-600 border-2 border-secondary text-foreground"
+            className="rounded-lg border-2 border-secondary bg-primary px-6 py-3 font-header text-lg text-foreground transition-all duration-200 hover:scale-105 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-secondary"
           >
             Back to Menu
           </button>
@@ -132,34 +130,37 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onBack }) => {
       </div>
 
       {/* Version info */}
-      <div className="absolute bottom-4 left-4 text-foreground-dim text-sm">
+      <div className="absolute bottom-4 left-4 text-sm text-foreground-dim">
         Version 0.1.0
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Section component for grouping settings
 interface SettingsSectionProps {
-  title: string;
-  children: React.ReactNode;
+  title: string
+  children: React.ReactNode
 }
 
-const SettingsSection: React.FC<SettingsSectionProps> = ({ title, children }) => {
+const SettingsSection: React.FC<SettingsSectionProps> = ({
+  title,
+  children,
+}) => {
   return (
     <div className="mb-6 last:mb-0">
       <div className="panel-header text-lg">{title}</div>
       <div className="panel-content space-y-4">{children}</div>
     </div>
-  );
-};
+  )
+}
 
 // Volume slider component
 interface VolumeSliderProps {
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
-  disabled?: boolean;
+  label: string
+  value: number
+  onChange: (value: number) => void
+  disabled?: boolean
 }
 
 const VolumeSlider: React.FC<VolumeSliderProps> = ({
@@ -168,13 +169,15 @@ const VolumeSlider: React.FC<VolumeSliderProps> = ({
   onChange,
   disabled = false,
 }) => {
-  const percentage = Math.round(value * 100);
+  const percentage = Math.round(value * 100)
 
   return (
     <div className={`flex flex-col ${disabled ? 'opacity-50' : ''}`}>
-      <div className="flex justify-between items-center mb-2">
-        <label className="text-foreground text-sm font-medium">{label}</label>
-        <span className="text-foreground-muted text-sm font-mono">{percentage}%</span>
+      <div className="mb-2 flex items-center justify-between">
+        <label className="text-sm font-medium text-foreground">{label}</label>
+        <span className="font-mono text-sm text-foreground-muted">
+          {percentage}%
+        </span>
       </div>
       <input
         type="range"
@@ -183,23 +186,23 @@ const VolumeSlider: React.FC<VolumeSliderProps> = ({
         value={percentage}
         onChange={(e) => onChange(parseInt(e.target.value, 10) / 100)}
         disabled={disabled}
-        className="w-full h-2 bg-background rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed slider"
+        className="slider h-2 w-full cursor-pointer appearance-none rounded-lg bg-background disabled:cursor-not-allowed"
       />
     </div>
-  );
-};
+  )
+}
 
 // Toggle switch component
 interface ToggleProps {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
+  label: string
+  checked: boolean
+  onChange: (checked: boolean) => void
 }
 
 const Toggle: React.FC<ToggleProps> = ({ label, checked, onChange }) => {
   return (
-    <div className="flex justify-between items-center">
-      <label className="text-foreground text-sm font-medium">{label}</label>
+    <div className="flex items-center justify-between">
+      <label className="text-sm font-medium text-foreground">{label}</label>
       <button
         type="button"
         role="switch"
@@ -216,15 +219,15 @@ const Toggle: React.FC<ToggleProps> = ({ label, checked, onChange }) => {
         />
       </button>
     </div>
-  );
-};
+  )
+}
 
 // Select dropdown component
 interface SelectOptionProps {
-  label: string;
-  value: string;
-  options: { value: string; label: string }[];
-  onChange: (value: string) => void;
+  label: string
+  value: string
+  options: { value: string; label: string }[]
+  onChange: (value: string) => void
 }
 
 const SelectOption: React.FC<SelectOptionProps> = ({
@@ -234,12 +237,12 @@ const SelectOption: React.FC<SelectOptionProps> = ({
   onChange,
 }) => {
   return (
-    <div className="flex justify-between items-center">
-      <label className="text-foreground text-sm font-medium">{label}</label>
+    <div className="flex items-center justify-between">
+      <label className="text-sm font-medium text-foreground">{label}</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="px-3 py-2 bg-background border border-primary-700 rounded-lg text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-secondary cursor-pointer"
+        className="cursor-pointer rounded-lg border border-primary-700 bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-secondary"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -248,38 +251,43 @@ const SelectOption: React.FC<SelectOptionProps> = ({
         ))}
       </select>
     </div>
-  );
-};
+  )
+}
 
 // Turn timer setting component with enable/disable
 interface TurnTimerSettingProps {
-  value: number | null;
-  onChange: (value: number | null) => void;
+  value: number | null
+  onChange: (value: number | null) => void
 }
 
-const TurnTimerSetting: React.FC<TurnTimerSettingProps> = ({ value, onChange }) => {
-  const isEnabled = value !== null;
-  const timerValue = value ?? 60;
+const TurnTimerSetting: React.FC<TurnTimerSettingProps> = ({
+  value,
+  onChange,
+}) => {
+  const isEnabled = value !== null
+  const timerValue = value ?? 60
 
   const handleToggle = () => {
     if (isEnabled) {
-      onChange(null);
+      onChange(null)
     } else {
-      onChange(60); // Default to 60 seconds
+      onChange(60) // Default to 60 seconds
     }
-  };
+  }
 
   const handleValueChange = (newValue: string) => {
-    const parsed = parseInt(newValue, 10);
+    const parsed = parseInt(newValue, 10)
     if (!isNaN(parsed) && parsed > 0) {
-      onChange(parsed);
+      onChange(parsed)
     }
-  };
+  }
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-between items-center">
-        <label className="text-foreground text-sm font-medium">Turn Timer (Multiplayer)</label>
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium text-foreground">
+          Turn Timer (Multiplayer)
+        </label>
         <button
           type="button"
           role="switch"
@@ -297,12 +305,14 @@ const TurnTimerSetting: React.FC<TurnTimerSettingProps> = ({ value, onChange }) 
         </button>
       </div>
       {isEnabled && (
-        <div className="flex justify-between items-center ml-4">
-          <label className="text-foreground-muted text-sm">Seconds per turn</label>
+        <div className="ml-4 flex items-center justify-between">
+          <label className="text-sm text-foreground-muted">
+            Seconds per turn
+          </label>
           <select
             value={timerValue.toString()}
             onChange={(e) => handleValueChange(e.target.value)}
-            className="px-3 py-2 bg-background border border-primary-700 rounded-lg text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-secondary cursor-pointer"
+            className="cursor-pointer rounded-lg border border-primary-700 bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-secondary"
           >
             <option value="30">30 seconds</option>
             <option value="60">60 seconds</option>
@@ -314,7 +324,7 @@ const TurnTimerSetting: React.FC<TurnTimerSettingProps> = ({ value, onChange }) 
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default SettingsScreen;
+export default SettingsScreen

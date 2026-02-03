@@ -138,6 +138,16 @@ impl GameEngine {
         }
     }
 
+    /// Create a game engine from an existing game state (for loading saves).
+    pub fn from_state(state: GameState, seed: [u8; 32]) -> Self {
+        Self {
+            state,
+            events: EventChain::new(),
+            config: ReplayConfig::default(),
+            fallback_rng: Some(DeterministicRandomness::new(seed)),
+        }
+    }
+
     /// Create a new game engine with custom replay configuration.
     pub fn with_config(settings: GameSettings, seed: [u8; 32], config: ReplayConfig) -> Self {
         let game_id = format!("game_{}", hex::encode(&seed[..8]));
